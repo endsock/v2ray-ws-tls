@@ -13,8 +13,6 @@ function yellow(){
 }
 
 function initenv() {
-    eab_kid='QWyTbUOgGj4us6WIaM7Y6w'
-    eab_hmac_key='RScOobWaIge7WhwSFWlbwOQFsyoBqfJlAIsz4bdTnmWmcFL7tKx3S6m4LWlzyHRd4EjahEqiSpVGCaaq0TgOAQ'
     export CF_Token="uLxO_2btZjaTCl_at-O_5lk4ZtlxcpEtyQqDihoF"
     export CF_Email="endsock@gmail.com"
     ssl_port=443
@@ -236,6 +234,10 @@ function install(){
     blue "请输入绑定到本VPS的域名"
     green "======================="
     read your_domain
+    green "=========eab_kid============="
+    read eab_kid
+    green "=========eab_hmac_key=============="
+    read eab_hmac_key
     real_addr=`ping ${your_domain} -c 1 | sed '1{s/[^(]*(//;s/).*//;q}'`
     local_addr=`curl ipv4.icanhazip.com`
     if [ $real_addr == $local_addr ] ; then
