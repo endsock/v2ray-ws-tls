@@ -234,9 +234,9 @@ function install(){
     blue "请输入绑定到本VPS的域名"
     green "======================="
     read your_domain
-    green "=========eab_kid============="
+    green "=========请输入eab_kid============="
     read eab_kid
-    green "=========eab_hmac_key=============="
+    green "=========请输入eab_hmac_key=============="
     read eab_hmac_key
     real_addr=`ping ${your_domain} -c 1 | sed '1{s/[^(]*(//;s/).*//;q}'`
     local_addr=`curl ipv4.icanhazip.com`
