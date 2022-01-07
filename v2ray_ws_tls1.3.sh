@@ -126,7 +126,7 @@ if [ -n "$Port443" ]; then
 fi
 }
 function install_nginx(){
-    apt-get purge iptables-persistent
+    #apt-get purge iptables-persistent
     wget https://www.openssl.org/source/old/1.1.1/openssl-1.1.1a.tar.gz >/dev/null 2>&1
     tar xzvf openssl-1.1.1a.tar.gz >/dev/null 2>&1
     mkdir /etc/nginx
