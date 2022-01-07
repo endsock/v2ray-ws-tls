@@ -167,8 +167,8 @@ http {
 }
 EOF
     curl https://get.acme.sh | sh
-    ~/.acme.sh --set-default-ca --server zerossl
-    ~/.acme.sh  --register-account  --server zerossl \
+    ~/.acme.sh/acme.sh --set-default-ca --server zerossl
+    ~/.acme.sh/acme.sh  --register-account  --server zerossl \
     --eab-kid  $eab_kid \
     --eab-hmac-key  $eab_hmac_key
     ~/.acme.sh/acme.sh --dns dns_cf  --issue  -d $your_domain  --standalone
