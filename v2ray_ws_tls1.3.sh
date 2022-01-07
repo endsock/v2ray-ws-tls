@@ -12,6 +12,15 @@ function yellow(){
     echo -e "\033[33m\033[01m$1\033[0m"
 }
 
+function initenv() {
+    eab_kid='QWyTbUOgGj4us6WIaM7Y6w'
+    eab_hmac_key='RScOobWaIge7WhwSFWlbwOQFsyoBqfJlAIsz4bdTnmWmcFL7tKx3S6m4LWlzyHRd4EjahEqiSpVGCaaq0TgOAQ'
+    export CF_Token="uLxO_2btZjaTCl_at-O_5lk4ZtlxcpEtyQqDihoF"
+    export CF_Email="endsock@gmail.com"
+    ssl_port=443
+    http_port=80
+}
+
 function check_os(){
 green "系统支持检测"
 sleep 3s
@@ -89,31 +98,31 @@ if [ -f "/etc/selinux/config" ]; then
     if [ "$CHECK" != "SELINUX=disabled" ]; then
         green "检测到SELinux开启状态，添加开放80/443端口规则"
 	yum install -y policycoreutils-python >/dev/null 2>&1
-        semanage port -m -t http_port_t -p tcp 80
-        semanage port -m -t http_port_t -p tcp 443
+        semanage port -m -t http_port_t -p tcp $http_port
+        semanage port -m -t http_port_t -p tcp $ssl_port
     fi
 fi
 firewall_status=`firewall-cmd --state`
 if [ "$firewall_status" == "running" ]; then
     green "检测到firewalld开启状态，添加放行80/443端口规则"
-    firewall-cmd --zone=public --add-port=80/tcp --permanent
-    firewall-cmd --zone=public --add-port=443/tcp --permanent
+    firewall-cmd --zone=public --add-port=$http_port/tcp --permanent
+    firewall-cmd --zone=public --add-port=$ssl_port/tcp --permanent
     firewall-cmd --reload
 fi
 $systemPackage -y install net-tools socat >/dev/null 2>&1
-Port80=`netstat -tlpn | awk -F '[: ]+' '$1=="tcp"{print $5}' | grep -w 80`
-Port443=`netstat -tlpn | awk -F '[: ]+' '$1=="tcp"{print $5}' | grep -w 443`
+Port80=`netstat -tlpn | awk -F '[: ]+' '$1=="tcp"{print $5}' | grep -w ${http_port}`
+Port443=`netstat -tlpn | awk -F '[: ]+' '$1=="tcp"{print $5}' | grep -w ${ssl_port}`
 if [ -n "$Port80" ]; then
-    process80=`netstat -tlpn | awk -F '[: ]+' '$5=="80"{print $9}'`
+    process80=`netstat -tlpn | awk -F '[: ]+' '$5=="${http_port}"{print $9}'`
     red "==========================================================="
-    red "检测到80端口被占用，占用进程为：${process80}，本次安装结束"
+    red "检测到${http_port}端口被占用，占用进程为：${process80}，本次安装结束"
     red "==========================================================="
     exit 1
 fi
 if [ -n "$Port443" ]; then
-    process443=`netstat -tlpn | awk -F '[: ]+' '$5=="443"{print $9}'`
+    process443=`netstat -tlpn | awk -F '[: ]+' '$5=="${ssl_port}"{print $9}'`
     red "============================================================="
-    red "检测到443端口被占用，占用进程为：${process443}，本次安装结束"
+    red "检测到${ssl_port}端口被占用，占用进程为：${process443}，本次安装结束"
     red "============================================================="
     exit 1
 fi
@@ -158,19 +167,23 @@ http {
 }
 EOF
     curl https://get.acme.sh | sh
-    ~/.acme.sh/acme.sh  --issue  -d $your_domain  --standalone
+    ~/.acme.sh --set-default-ca --server zerossl
+    ~/.acme.sh  --register-account  --server zerossl \
+    --eab-kid  $eab_kid \
+    --eab-hmac-key  $eab_hmac_key
+    ~/.acme.sh/acme.sh --dns dns_cf  --issue  -d $your_domain  --standalone
     ~/.acme.sh/acme.sh  --installcert  -d  $your_domain   \
         --key-file   /etc/nginx/ssl/$your_domain.key \
         --fullchain-file /etc/nginx/ssl/fullchain.cer
     newpath=$(cat /dev/urandom | head -1 | md5sum | head -c 4)
 cat > /etc/nginx/conf.d/default.conf<<-EOF
 server { 
-    listen       80;
+    listen       $http_port;
     server_name  $your_domain;
     rewrite ^(.*)$  https://\$host\$1 permanent; 
 }
 server {
-    listen 443 ssl http2;
+    listen $ssl_port ssl http2;
     server_name $your_domain;
     root /etc/nginx/html;
     index index.php index.html;
@@ -253,7 +266,7 @@ function install_v2ray(){
     bash <(curl -L -s https://raw.githubusercontent.com/v2fly/fhs-install-v2ray/master/install-release.sh) 
     cd /usr/local/etc/v2ray/
     rm -f config.json
-    wget https://raw.githubusercontent.com/atrandys/v2ray-ws-tls/master/config.json >/dev/null 2>&1
+    wget https://raw.githubusercontent.com/endsock/v2ray-ws-tls/master/config.json >/dev/null 2>&1
     v2uuid=$(cat /proc/sys/kernel/random/uuid)
     sed -i "s/aaaa/$v2uuid/;" config.json
     sed -i "s/mypath/$newpath/;" config.json
@@ -268,9 +281,9 @@ cat > /usr/local/etc/v2ray/myconfig.json<<-EOF
 {
 ===========配置参数=============
 地址：${your_domain}
-端口：443
+端口：${ssl_port}
 uuid：${v2uuid}
-额外id：64
+额外id：0
 加密方式：aes-128-gcm
 传输协议：ws
 别名：myws
@@ -283,9 +296,9 @@ green "=============================="
 green "         安装已经完成"
 green "===========配置参数============"
 green "地址：${your_domain}"
-green "端口：443"
+green "端口：${ssl_port}"
 green "uuid：${v2uuid}"
-green "额外id：64"
+green "额外id：0"
 green "加密方式：aes-128-gcm"
 green "传输协议：ws"
 green "别名：myws"
@@ -325,6 +338,7 @@ function start_menu(){
     read -p "Pls enter a number:" num
     case "$num" in
     1)
+    initenv
     check_os
     check_env
     install
