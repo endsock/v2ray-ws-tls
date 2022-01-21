@@ -13,8 +13,8 @@ function yellow(){
 }
 
 function initenv() {
-    export CF_Token="uLxO_2btZjaTCl_at-O_5lk4ZtlxcpEtyQqDihoF"
-    export CF_Email="endsock@gmail.com"
+    export CF_Token=""
+    export CF_Email=""
     ssl_port=443
     http_port=80
 }
