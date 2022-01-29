@@ -239,49 +239,36 @@ function install(){
 function install_v2ray(){
     mkdir ~/.v2ray
     #echo "V2RAY_VMESS_AEAD_FORCED=false" > ~/.v2ray/v2_env
-    #bash <(curl -L -s https://install.direct/go.sh)  
-    bash <(curl -L -s https://raw.githubusercontent.com/v2fly/fhs-install-v2ray/master/install-release.sh) 
-    cd /usr/local/etc/v2ray/
-    rm -f config.json
-    wget https://raw.githubusercontent.com/endsock/v2ray-ws-tls/master/config.json >/dev/null 2>&1
-    v2uuid=$(cat /proc/sys/kernel/random/uuid)
-    sed -i "s/aaaa/$v2uuid/;" config.json
-    sed -i "s/mypath/$newpath/;" config.json
-    cd /etc/nginx/html
-    rm -f ./*
-    wget https://github.com/atrandys/v2ray-ws-tls/raw/master/web.zip >/dev/null 2>&1
-    unzip web.zip >/dev/null 2>&1
-    systemctl restart v2ray.service
-    systemctl restart nginx.service    
-    
-cat > /usr/local/etc/v2ray/myconfig.json<<-EOF
-{
-===========配置参数=============
-地址：${your_domain}
-端口：${ssl_port}
-uuid：${v2uuid}
-额外id：0
-加密方式：aes-128-gcm
-传输协议：ws
-别名：myws
-路径：${newpath}
-底层传输：tls
-}
+    #bash <(curl -L -s https://install.direct/go.sh)
+    wget https://github.com/trojan-gfw/trojan/releases/download/v1.16.0/trojan-1.16.0-linux-amd64.tar.xz
+    tar -xf trojan-1.16.0-linux-amd64.tar.xz
+    mv trojan/trojan /usr/local/bin/trojan
+    chmod 755 /usr/local/bin/trojan
+    mkdir /etc/trojan/
+    mv trojan/config.json  /etc/trojan/config.json
+cat > /etc/systemd/system/trojan.service<<-EOF
+[Unit]
+Description=trojan
+Documentation=https://trojan-gfw.github.io/config https://trojan-gfw.github.io/
+After=network.target network-online.target
+
+[Service]
+Type=simple
+StandardError=journal
+ExecStart=trojan -c /etc/trojan/config.json
+ExecReload=/bin/kill -HUP \$MAINPID
+LimitNOFILE=51200
+Restart=on-failure
+RestartSec=1s
+
+[Install]
+WantedBy=multi-user.target
 EOF
 
+
 green "=============================="
-green "         安装已经完成"
+green "         安装已经完成，请修改/etc/trojan/config.json"
 green "===========配置参数============"
-green "地址：${your_domain}"
-green "端口：${ssl_port}"
-green "uuid：${v2uuid}"
-green "额外id：0"
-green "加密方式：aes-128-gcm"
-green "传输协议：ws"
-green "别名：myws"
-green "路径：${newpath}"
-green "底层传输：tls"
-green "vim /etc/systemd/system/v2ray.service add EnvironmentFile=~/.v2ray/v2_env to [Service]"
 }
 
 function remove_v2ray(){
@@ -307,7 +294,7 @@ function start_menu(){
     green " Author     : A                     "
     green " ==============================================="
     echo
-    green " 1. Install v2ray+ws+tls1.3"
+    green " 1. Install trojan+ws+tls1.3"
     green " 2. Update v2ray"
     red " 3. Remove v2ray"
     yellow " 0. Exit"
