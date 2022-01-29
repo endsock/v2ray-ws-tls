@@ -268,6 +268,7 @@ EOF
 
 green "=============================="
 green "         安装已经完成，请修改/etc/trojan/config.json"
+green "         密码生成: openssl rand -base64 20"
 green "===========配置参数============"
 }
 
