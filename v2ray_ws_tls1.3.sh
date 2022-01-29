@@ -264,7 +264,7 @@ function install(){
 #安装v2ray
 function install_v2ray(){
     mkdir ~/.v2ray
-    echo "V2RAY_VMESS_AEAD_FORCED=false" > ~/.v2ray/v2_env
+    #echo "V2RAY_VMESS_AEAD_FORCED=false" > ~/.v2ray/v2_env
     #bash <(curl -L -s https://install.direct/go.sh)  
     bash <(curl -L -s https://raw.githubusercontent.com/v2fly/fhs-install-v2ray/master/install-release.sh) 
     cd /usr/local/etc/v2ray/
