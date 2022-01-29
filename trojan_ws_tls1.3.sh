@@ -255,7 +255,7 @@ After=network.target network-online.target
 [Service]
 Type=simple
 StandardError=journal
-ExecStart=trojan -c /etc/trojan/config.json
+ExecStart=/usr/local/bin/trojan -c /etc/trojan/config.json
 ExecReload=/bin/kill -HUP $MAINPID
 LimitNOFILE=51200
 Restart=on-failure
